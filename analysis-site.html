@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAIT Environmental Analysis Tool</title>
+    <style>
+        /* Keep all your existing CSS styles from before */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 2;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            flex: 1;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .status-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .results {
+            display: none;
+            animation: slideUp 0.5s;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .geometry-info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0079c1;
+        }
+        
+        .coordinates-display {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌿 SAIT Environmental Analysis Tool</h1>
+            <p>Analyze environmental features within your drawn area from Experience Builder</p>
+        </div>
+        
+        <div id="geometryInfo" class="geometry-info">
+            <h3>📍 Analysis Area</h3>
+            <div id="areaMessage">Loading drawn area from Experience Builder...</div>
+            <div id="coordinatesDisplay" class="coordinates-display"></div>
+        </div>
+        
+        <div class="card">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="pageSelect">📋 Analysis Type</label>
+                    <select id="pageSelect">
+                        <option value="hydrography">🌊 Hydrography (Water features)</option>
+                        <option value="ecology" selected>🌳 Ecology (ESA, Wildlife, Soil)</option>
+                        <option value="pipelines">🛢️ Pipelines & Utilities</option>
+                        <option value="infrastructure">🏗️ Infrastructure</option>
+                        <option value="admin">🏛️ Administrative Boundaries</option>
+                        <option value="all">📊 All Layers (Comprehensive)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>📍 Area Details</label>
+                    <div id="areaDetails" style="padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                        <div id="geomType">Checking for drawn geometry...</div>
+                        <div id="vertexCount" style="font-size: 14px; color: #6c757d;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button class="btn btn-primary" onclick="runAnalysis()" id="analyzeBtn">
+                    <span>🚀</span>
+                    Run Analysis on Drawn Area
+                </button>
+                <button class="btn btn-success" onclick="testAPI()">
+                    <span>🔗</span>
+                    Test API Connection
+                </button>
+                <button class="btn" onclick="useSampleArea()" style="background: #6c757d; color: white;">
+                    <span>📍</span>
+                    Use Sample Area
+                </button>
+            </div>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div id="results" class="card results"></div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const API_URL = "https://analysis-tool-api.onrender.com";
+        
+        // Variable to store the geometry from Experience Builder
+        let currentGeometry = null;
+        
+        // ============================================
+        // GEOMETRY EXTRACTION FROM URL
+        // ============================================
+        
+        // Function to get geometry from Experience Builder via URL parameters
+        function getGeometryFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Check if geometry is passed in URL
+            if (urlParams.has('geometry')) {
+                try {
+                    const geometryString = urlParams.get('geometry');
+                    const geometry = JSON.parse(decodeURIComponent(geometryString));
+                    console.log("Successfully loaded geometry from Experience Builder:", geometry);
+                    return geometry;
+                } catch (error) {
+                    console.error("Error parsing geometry from URL:", error);
+                    showStatus("❌ Error loading drawn area from Experience Builder", "error");
+                }
+            }
+            
+            // No geometry found
+            showStatus("⚠️ No drawn area found in URL. Did you click 'Capture Area' in Experience Builder?", "warning");
+            return null;
+        }
+        
+        // Function to display geometry information
+        function displayGeometryInfo(geometry) {
+            if (!geometry) {
+                document.getElementById('areaMessage').innerHTML = 
+                    '<strong style="color: #dc3545;">❌ No area selected</strong>';
+                document.getElementById('geomType').textContent = 'Please draw an area in Experience Builder first';
+                document.getElementById('vertexCount').textContent = '';
+                document.getElementById('coordinatesDisplay').innerHTML = '';
+                document.getElementById('analyzeBtn').disabled = true;
+                return;
+            }
+            
+            const geomType = geometry.type || 'Unknown';
+            let vertexCount = 0;
+            let coordinatesText = '';
+            
+            // Extract coordinates based on geometry type
+            if (geometry.coordinates) {
+                if (geomType === 'Polygon') {
+                    vertexCount = geometry.coordinates[0] ? geometry.coordinates[0].length : 0;
+                    coordinatesText = JSON.stringify(geometry.coordinates[0].slice(0, 5), null, 2);
+                    if (vertexCount > 5) coordinatesText += '\n... and ' + (vertexCount - 5) + ' more points';
+                } else if (geomType === 'Point') {
+                    vertexCount = 1;
+                    coordinatesText = JSON.stringify(geometry.coordinates, null, 2);
+                } else if (geomType === 'LineString') {
+                    vertexCount = geometry.coordinates.length;
+                    coordinatesText = JSON.stringify(geometry.coordinates.slice(0, 3), null, 2);
+                    if (vertexCount > 3) coordinatesText += '\n... and ' + (vertexCount - 3) + ' more points';
+                }
+            }
+            
+            // Update UI
+            document.getElementById('areaMessage').innerHTML = 
+                `<strong style="color: #28a745;">✅ Area loaded from Experience Builder</strong>`;
+            document.getElementById('geomType').textContent = `Type: ${geomType}`;
+            document.getElementById('vertexCount').textContent = `Vertices: ${vertexCount}`;
+            document.getElementById('coordinatesDisplay').textContent = coordinatesText;
+            document.getElementById('analyzeBtn').disabled = false;
+            
+            // Update button text
+            document.getElementById('analyzeBtn').innerHTML = 
+                `<span>🚀</span> Analyze ${geomType} Area (${vertexCount} vertices)`;
+        }
+        
+        // Function to use sample area as fallback
+        function useSampleArea() {
+            currentGeometry = {
+                "type": "Polygon",
+                "coordinates": [[
+                    [-114.6, 51.0],  // Southwest
+                    [-113.8, 51.0],  // Southeast  
+                    [-113.8, 51.2],  // Northeast
+                    [-114.6, 51.2],  // Northwest
+                    [-114.6, 51.0]   // Close polygon
+                ]]
+            };
+            
+            displayGeometryInfo(currentGeometry);
+            showStatus("📍 Using sample Calgary area (draw area in Experience Builder for custom analysis)", "info");
+        }
+        
+        // ============================================
+        // EXPERIENCE BUILDER SETUP INSTRUCTIONS
+        // ============================================
+        
+        function showExperienceBuilderInstructions() {
+            if (!currentGeometry) {
+                const instructions = `
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                        <h4 style="color: #856404; margin-top: 0;">📋 How to Connect with Experience Builder:</h4>
+                        <ol style="margin: 10px 0 0 20px;">
+                            <li>In Experience Builder, draw a polygon on the map</li>
+                            <li>Add a button with this URL action:</li>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; font-size: 12px;">
+                                https://YOUR-URL-HERE.com?geometry=\${encodeURIComponent(JSON.stringify(\$mapView.drawingComplete.graphics[0].geometry.toJSON()))}
+                            </div>
+                            <li>Click the button to send your drawn area to this tool</li>
+                        </ol>
+                    </div>
+                `;
+                document.getElementById('geometryInfo').innerHTML += instructions;
+            }
+        }
+        
+        // ============================================
+        // UI FUNCTIONS
+        // ============================================
+        
+        function showStatus(message, type = "info") {
+            const statusDiv = document.getElementById("status");
+            statusDiv.className = `status status-${type}`;
+            statusDiv.innerHTML = message;
+            statusDiv.style.display = "block";
+        }
+        
+        function showLoading() {
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.className = "card results";
+            resultsDiv.style.display = "block";
+            resultsDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <h3>Analyzing Environmental Features...</h3>
+                    <p>Querying ArcGIS layers in your drawn area</p>
+                    <p style="font-size: 14px; color: #6c757d;">Area type: ${currentGeometry ? currentGeometry.type : 'Unknown'}</p>
+                </div>
+            `;
+        }
+        
+        // ============================================
+        // API FUNCTIONS
+        // ============================================
+        
+        async function testAPI() {
+            showStatus("🔍 Testing connection to analysis API...", "info");
+            
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                if (data.api_status === "healthy") {
+                    showStatus(`
+                        <strong>✅ API Connection Successful</strong><br>
+                        Status: ${data.api_status}<br>
+                        ArcGIS: ${data.arcgis_connection}<br>
+                        Portal: ${data.portal || 'SAIT ArcGIS Online'}
+                    `, "success");
+                } else {
+                    showStatus("⚠️ API returned unhealthy status", "error");
+                }
+            } catch (error) {
+                showStatus(`
+                    <strong>❌ Connection Failed</strong><br>
+                    Error: ${error.message}
+                `, "error");
+            }
+        }
+        
+        async function runAnalysis() {
+            if (!currentGeometry) {
+                showStatus("❌ Please draw an area in Experience Builder first", "error");
+                return;
+            }
+            
+            const page = document.getElementById("pageSelect").value;
+            const pageNames = {
+                "hydrography": "Hydrography",
+                "ecology": "Ecology", 
+                "pipelines": "Pipelines",
+                "infrastructure": "Infrastructure",
+                "admin": "Administrative",
+                "all": "All Layers"
+            };
+            
+            showStatus(`Starting ${pageNames[page]} analysis for your drawn area...`, "info");
+            showLoading();
+            
+            try {
+                // Use the geometry from Experience Builder
+                const response = await fetch(`${API_URL}/simple-analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        geometry: currentGeometry,
+                        page: page
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                    const totalFeatures = data.results.reduce((sum, item) => sum + item.count, 0);
+                    showStatus(`✅ Analysis complete! Found ${totalFeatures} features in your area`, "success");
+                } else {
+                    showResultsError(data.error || "Analysis failed");
+                    showStatus(`❌ Analysis failed: ${data.error || "Unknown error"}`, "error");
+                }
+                
+            } catch (error) {
+                showResultsError(error.message);
+                showStatus(`❌ Error: ${error.message}`, "error");
+            }
+        }
+        
+        // ============================================
+        // RESULTS DISPLAY
+        // ============================================
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById("results");
+            const page = document.getElementById("pageSelect").value;
+            const totalFeatures = data.results.reduce((sum, item) => sum + item.count, 0);
+            
+            let html = `
+                <h2>📊 Analysis Results for Your Area</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Features Found</div>
+                        <div class="stat-value" style="color: #28a745;">${totalFeatures}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Analysis Type</div>
+                        <div class="stat-value">${page}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Area Type</div>
+                        <div class="stat-value">${currentGeometry.type}</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 25px 0 15px 0;">Layer Breakdown</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Layer</th>
+                                <th>Type</th>
+                                <th>Features Found</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            data.results.forEach((item, index) => {
+                const rowColor = index % 2 === 0 ? '#f8f9fa' : '#ffffff';
+                html += `
+                    <tr style="background: ${rowColor};">
+                        <td><strong>${item.layer}</strong></td>
+                        <td>${item.type}</td>
+                        <td>
+                            <span style="font-weight: bold; color: ${item.count > 0 ? '#28a745' : '#dc3545'}">
+                                ${item.count}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h4>📍 Analysis Area Details</h4>
+                    <p><strong>Type:</strong> ${currentGeometry.type}</p>
+                    <p><strong>Coordinates used:</strong> ${JSON.stringify(currentGeometry.coordinates[0].slice(0, 3))}...</p>
+                    <p><strong>Analysis completed:</strong> ${data.timestamp}</p>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function showResultsError(errorMessage) {
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+                    <h3 style="color: #dc3545; margin-bottom: 15px;">Analysis Failed</h3>
+                    <p style="color: #6c757d; margin-bottom: 20px;">${errorMessage}</p>
+                </div>
+            `;
+        }
+        
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. Try to get geometry from Experience Builder URL
+            currentGeometry = getGeometryFromURL();
+            
+            // 2. Display geometry info
+            displayGeometryInfo(currentGeometry);
+            
+            // 3. If no geometry, show instructions
+            if (!currentGeometry) {
+                useSampleArea();
+                showExperienceBuilderInstructions();
+            }
+            
+            // 4. Test API connection
+            setTimeout(testAPI, 1000);
+        });
+        
+        // Make functions available globally
+        window.runAnalysis = runAnalysis;
+        window.testAPI = testAPI;
+        window.useSampleArea = useSampleArea;
+    </script>
+</body>
+</html>
